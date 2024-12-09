@@ -40,13 +40,14 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    def containerId = sh(script: "docker ps -a -q -f name=${env.IMAGE_NAME}", returnStdout: true).trim()
+                    def containerName = "${params.BRANCH == 'main' ? 'nodemain' : 'nodedev'}"
+                    def containerId = sh(script: "docker ps -a -q -f name=${containerName}", returnStdout: true).trim()
                     sh """
                         if [ -n "${containerId}" ]; then
                             docker stop ${containerId}
                             docker rm ${containerId}
                         fi
-                        docker run -d --rm --name ${env.IMAGE_NAME} -p ${env.PORT}:${env.PORT} ${env.IMAGE_NAME}
+                        docker run -d --rm --name ${containerName} -p ${env.PORT}:${env.PORT} ${env.IMAGE_NAME}
                     """
                 }
             }
