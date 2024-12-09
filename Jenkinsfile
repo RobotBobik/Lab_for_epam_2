@@ -26,7 +26,7 @@ pipeline {
             steps {
                 script {
                     def imageName = params.BRANCH == 'main' ? 'nodemain:v1.0' : 'nodedev:v1.0'
-                    bat """echo %DOCKER_PASSWORD% | sudo -S docker build -t ${imageName} ."""
+                    sh 'echo %DOCKER_PASSWORD% | sudo -S docker build -t ${imageName} .'
                 }
             }
         }
@@ -35,9 +35,9 @@ pipeline {
                 script {
                     def port = params.BRANCH == 'main' ? '3000' : '3001'
                     def imageName = params.BRANCH == 'main' ? 'nodemain:v1.0' : 'nodedev:v1.0'
-                    bat """echo %DOCKER_PASSWORD% | sudo -S docker stop $(docker ps -a -q)"""
-                    bat """echo %DOCKER_PASSWORD% | sudo -S docker rm $(docker ps -a -q)"""
-                    bat """echo %DOCKER_PASSWORD% | sudo -S docker run -d --expose ${port} -p ${port}:${port} ${imageName}"""
+                    sh 'echo '${env.DOCKER_PASSWORD}' | sudo -S docker stop $(docker ps -a -q)'
+                    sh 'echo '${env.DOCKER_PASSWORD}' | sudo -S docker rm $(docker ps -a -q)'
+                    sh 'echo '${env.DOCKER_PASSWORD}' | sudo -S docker run -d --expose ${port} -p ${port}:${port'
                 }
             }
         }
