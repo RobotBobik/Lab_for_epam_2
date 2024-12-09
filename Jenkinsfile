@@ -4,7 +4,7 @@ pipeline {
         choice(name: 'BRANCH', choices: ['main', 'dev'], description: 'Choose branch to deploy')
     }
     environment {
-        DOCKER_PASSWORD = credentials('fed894be-232a-4e3f-a3d4-5316daf9623d') // Replace with your Docker Hub password credential ID
+        DOCKER_PASSWORD = credentials('206abae6-7661-4d3f-9acf-25c7d85cd07f')
     }
     stages {
         stage('Checkout') {
@@ -22,15 +22,12 @@ pipeline {
                 sh 'npm test'
             }
         }
-        stage('Build and Push Docker Image') {
+        stage('Build Docker Image') {
             steps {
                 script {
-                    def imageName = "robotbobik/${params.BRANCH == 'main' ? 'nodemain' : 'nodedev'}:v1.0" // Include your Docker Hub username (salo)
-
-                   withCredentials([string(credentialsId: '105b4042-4bd6-4305-8b99-e3d6bca3e72d', variable: 'DOCKER_PASS')]) {
-                        sh 'docker build -t ${imageName} . --pull'
-                        sh 'docker login -u robotbobik -p \$DOCKER_PASS'  // Docker Hub login
-                        sh 'docker push ${imageName}'              // Push to Docker Hub
+                    def imageName = params.BRANCH == 'main' ? 'nodemain:v1.0' : 'nodedev:v1.0'
+                    withCredentials([string(credentialsId: '206abae6-7661-4d3f-9acf-25c7d85cd07f', variable: 'DOCKER_PASS')] ) {
+                        sh 'docker build -t "${imageName}" .' // Single quotes, variable interpolated in groovy
                     }
                 }
             }
@@ -39,11 +36,13 @@ pipeline {
             steps {
                 script {
                     def port = params.BRANCH == 'main' ? '3000' : '3001'
-                    def imageName = "salo/${params.BRANCH == 'main' ? 'nodemain' : 'nodedev'}:v1.0" // Use the same image name as in the build stage
+                    def imageName = params.BRANCH == 'main' ? 'nodemain:v1.0' : 'nodedev:v1.0'
 
-                    sh 'docker stop $(docker ps -a -q -f name=${imageName}) || true'  // Stop existing container by name if it's running
-                    sh 'docker rm $(docker ps -a -q -f name=${imageName}) || true'  // Remove existing container by name
-                    sh 'docker run -d --rm --name ${imageName} -p ${port}:${port} ${imageName}'  // Run the new container
+                    withCredentials([string(credentialsId: '206abae6-7661-4d3f-9acf-25c7d85cd07f', variable: 'DOCKER_PASS')] ) {
+                        sh 'docker stop $(docker ps -a -q) || true'
+                        sh 'docker rm $(docker ps -a -q) || true'
+                        sh "docker run -d --rm --name ${imageName} --expose ${port} -p ${port}:${port} ${imageName}" // Mixed for safety; imageName is already safe.
+                    }
                 }
             }
         }
