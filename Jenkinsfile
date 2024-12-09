@@ -23,7 +23,7 @@ pipeline {
             steps {
                 script {
                     def imageName = params.BRANCH == 'main' ? 'nodemain:v1.0' : 'nodedev:v1.0'
-                    sh "docker build -t ${imageName} ."
+                    sh "sudo docker build -t ${imageName} ."
                 }
             }
         }
@@ -32,9 +32,9 @@ pipeline {
                 script {
                     def port = params.BRANCH == 'main' ? '3000' : '3001'
                     def imageName = params.BRANCH == 'main' ? 'nodemain:v1.0' : 'nodedev:v1.0'
-                    sh 'docker stop $(docker ps -a -q)'
-                    sh 'docker rm $(docker ps -a -q)'
-                    sh 'docker run -d --expose ${port} -p ${port}:${port} ${imageName}'
+                    sh 'sudo docker stop $(docker ps -a -q)'
+                    sh 'sudo docker rm $(docker ps -a -q)'
+                    sh 'sudo docker run -d --expose ${port} -p ${port}:${port} ${imageName}'
                 }
             }
         }
