@@ -4,7 +4,7 @@ pipeline {
         choice(name: 'BRANCH', choices: ['main', 'dev'], description: 'Choose branch to deploy')
     }
     environment {
-        DOCKER_PASSWORD = credentials('206abae6-7661-4d3f-9acf-25c7d85cd07f')
+        DOCKER_PASSWORD = credentials('105b4042-4bd6-4305-8b99-e3d6bca3e72d')
     }
     stages {
         stage('Checkout') {
