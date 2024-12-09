@@ -26,7 +26,7 @@ pipeline {
             steps {
                 script {
                     def imageName = params.BRANCH == 'main' ? 'nodemain:v1.0' : 'nodedev:v1.0'
-                    withCredentials([string(credentialsId: '206abae6-7661-4d3f-9acf-25c7d85cd07f', variable: 'DOCKER_PASS')] ) {
+                    withCredentials([string(credentialsId: '105b4042-4bd6-4305-8b99-e3d6bca3e72d', variable: 'DOCKER_PASS')] ) {
                         sh 'docker build -t "${imageName}" .' // Single quotes, variable interpolated in groovy
                     }
                 }
