@@ -32,9 +32,9 @@ pipeline {
                 script {
                     def port = params.BRANCH == 'main' ? '3000' : '3001'
                     def imageName = params.BRANCH == 'main' ? 'nodemain:v1.0' : 'nodedev:v1.0'
-                    sh "docker stop $(docker ps -a -q)"
-                    sh "docker rm $(docker ps -a -q)"
-                    sh "docker run -d --expose ${port} -p ${port}:${port} ${imageName}"
+                    sh 'docker stop $(docker ps -a -q)'
+                    sh 'docker rm $(docker ps -a -q)'
+                    sh 'docker run -d --expose ${port} -p ${port}:${port} ${imageName}'
                 }
             }
         }
