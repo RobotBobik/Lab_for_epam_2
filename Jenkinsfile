@@ -13,7 +13,7 @@ pipeline {
                     try {
                         git branch: "${params.BRANCH}", url: 'https://github.com/RobotBobik/Lab_for_epam_2.git'
                     } catch (Exception e) {
-                        error "Failed to checkout branch ${params.BRANCH}. Verify the branch exists in the repository."
+                        error 'Failed to checkout branch ${params.BRANCH}. Verify the branch exists in the repository.'
                     }
                 }
             }
@@ -32,9 +32,7 @@ pipeline {
             steps {
                 script {
                     def imageName = params.BRANCH == 'main' ? 'nodemain:v1.0' : 'nodedev:v1.0'
-                    sh """
-                        echo "${env.DOCKER_PASSWORD}" | sudo -S docker build -t ${imageName} .
-                    """
+                    sh 'echo "${env.DOCKER_PASSWORD}" | sudo -S docker build -t ${imageName} .'
                 }
             }
         }
@@ -44,11 +42,9 @@ pipeline {
                     def port = params.BRANCH == 'main' ? '3000' : '3001'
                     def imageName = params.BRANCH == 'main' ? 'nodemain:v1.0' : 'nodedev:v1.0'
 
-                    sh """
-                        echo "${env.DOCKER_PASSWORD}" | sudo -S docker stop $(docker ps -a -q) || true
-                        echo "${env.DOCKER_PASSWORD}" | sudo -S docker rm $(docker ps -a -q) || true
-                        echo "${env.DOCKER_PASSWORD}" | sudo -S docker run -d --name ${imageName} --expose ${port} -p ${port}:${port} ${imageName}
-                    """
+                    sh 'echo "${env.DOCKER_PASSWORD}" | sudo -S docker stop $(docker ps -a -q) || true'
+                    sh 'echo "${env.DOCKER_PASSWORD}" | sudo -S docker rm $(docker ps -a -q) || true'
+                    sh 'echo "${env.DOCKER_PASSWORD}" | sudo -S docker run -d --name ${imageName} --expose ${port} -p ${port}:${port} ${imageName}'
                 }
             }
         }
