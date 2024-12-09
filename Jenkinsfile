@@ -4,9 +4,9 @@ pipeline {
         choice(name: 'BRANCH', choices: ['main', 'dev'], description: 'Choose branch to deploy')
     }
     environment {
-        DOCKER_USERNAME = 'robotbobik' // Docker Hub username
+        DOCKER_USERNAME = 'robotbobik'
         IMAGE_NAME = "${DOCKER_USERNAME}/${params.BRANCH == 'main' ? 'nodemain' : 'nodedev'}:v1.0"
-        PORT = "${params.BRANCH == 'main' ? '3000' : '3001'}" // Значення в лапках
+        PORT = "${params.BRANCH == 'main' ? '3000' : '3001'}"
     }
     stages {
         stage('Checkout') {
@@ -28,11 +28,11 @@ pipeline {
             steps {
                 script {
                     withCredentials([string(credentialsId: '105b4042-4bd6-4305-8b99-e3d6bca3e72d', variable: 'DOCKER_PASS')]) {
-                        sh '''
-                            docker build -t ${IMAGE_NAME} .
-                            echo ${DOCKER_PASS} | docker login -u ${DOCKER_USERNAME} --password-stdin
-                            docker push ${IMAGE_NAME}
-                        '''
+                        sh """
+                            docker build -t ${env.IMAGE_NAME} .
+                            echo ${DOCKER_PASS} | docker login -u ${env.DOCKER_USERNAME} --password-stdin
+                            docker push ${env.IMAGE_NAME}
+                        """
                     }
                 }
             }
@@ -40,15 +40,15 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    def containerName = "${params.BRANCH == 'main' ? 'nodemain' : 'nodedev'}"
+                    def containerName = params.BRANCH == 'main' ? 'nodemain' : 'nodedev'
                     def containerId = sh(script: "docker ps -a -q -f name=${containerName}", returnStdout: true).trim()
-                    sh '''
+                    sh """
                         if [ -n "${containerId}" ]; then
                             docker stop ${containerId}
                             docker rm ${containerId}
                         fi
-                        docker run -d --rm --name ${containerName} -p ${PORT}:${PORT} ${IMAGE_NAME}
-                    '''
+                        docker run -d --rm --name ${containerName} -p ${env.PORT}:${env.PORT} ${env.IMAGE_NAME}
+                    """
                 }
             }
         }
