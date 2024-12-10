@@ -1,54 +1,38 @@
 pipeline {
     agent any
     parameters {
-        choice(name: 'BRANCH', choices: ['main', 'dev'], description: 'Choose branch to deploy')
+        choice(name: 'ENV', choices: ['main', 'dev'], description: 'Choose environment to deploy')
     }
     environment {
-        DOCKER_USERNAME = 'robotbobik'
-        IMAGE_NAME = "${DOCKER_USERNAME}/${params.BRANCH == 'main' ? 'nodemain' : 'nodedev'}:v1.0"
-        PORT = "${params.BRANCH == 'main' ? '3000' : '3001'}"
+        DOCKER_USERNAME = 'robotbobik' 
+        IMAGE_NAME = "${DOCKER_USERNAME}/${params.ENV == 'main' ? 'nodemain' : 'nodedev'}:v1.0"
+        PORT = "${params.ENV == 'main' ? '3000' : '3001'}"
     }
     stages {
-        stage('Checkout') {
-            steps {
-                git branch: "${params.BRANCH}", url: 'https://github.com/RobotBobik/Lab_for_epam_2.git'
-            }
-        }
-        stage('Build App') {
-            steps {
-                sh 'npm install'
-            }
-        }
-        stage('Test') {
-            steps {
-                sh 'npm test'
-            }
-        }
-        stage('Build and Push Docker Image') {
+        stage('Pull Docker Image') {
             steps {
                 script {
-                    withCredentials([string(credentialsId: '105b4042-4bd6-4305-8b99-e3d6bca3e72d', variable: 'DOCKER_PASS')]) {
-                        sh """
-                            docker build -t ${env.IMAGE_NAME} .
-                            echo ${DOCKER_PASS} | docker login -u ${env.DOCKER_USERNAME} --password-stdin
-                            docker push ${env.IMAGE_NAME}
-                        """
+                    sh "docker pull ${env.IMAGE_NAME}"
+                }
+            }
+        }
+        stage('Stop and Remove Existing Container') {
+            steps {
+                script {
+                    def containerName = "${params.ENV == 'main' ? 'nodemain' : 'nodedev'}"
+                    def containerId = sh(script: "docker ps -a -q -f name=${containerName}", returnStdout: true).trim()
+                    if (containerId) {
+                        sh "docker stop ${containerId}"
+                        sh "docker rm ${containerId}"
                     }
                 }
             }
         }
-        stage('Deploy') {
+        stage('Run Docker Container') {
             steps {
                 script {
-                    def containerName = params.BRANCH == 'main' ? 'nodemain' : 'nodedev'
-                    def containerId = sh(script: "docker ps -a -q -f name=${containerName}", returnStdout: true).trim()
-                    sh """
-                        if (containerRunning == "true") {
-                            sh "docker stop ${containerName}"
-                            sh "docker rm ${containerName}"
-                        }
-                        sh "docker run -d --rm --name ${containerName} -p ${env.PORT}:${env.PORT} ${env.IMAGE_NAME}"
-                    """
+                    def containerName = "${params.ENV == 'main' ? 'nodemain' : 'nodedev'}"
+                    sh "docker run -d --rm --name ${containerName} -p ${env.PORT}:${env.PORT} ${env.IMAGE_NAME}"
                 }
             }
         }
